@@ -1,0 +1,42 @@
+name: dj_musi_app
+description: Personal music streaming + DJ mixing app (YouTube audio source, dual turntable mixer).
+publish_to: 'none'
+version: 0.15.0+15
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+
+  # Audio playback engine - supports two simultaneous players, volume control, seeking
+
+  # Extracts playable audio stream URLs from YouTube videos/search results
+  youtube_explode_dart: ^3.1.0
+
+  # State management across the two decks + crossfader
+  provider: ^6.1.1
+
+  # HTTP client (youtube_explode_dart uses this under the hood, declared explicitly for clarity)
+  http: ^1.1.0
+
+  # Finds the cache folder where deck songs are saved for instant scratching
+  path_provider: ^2.1.0
+
+  # Saves playlists and search history on the device
+  shared_preferences: ^2.3.0
+
+  # Plays the actual YouTube video (muxed audio+video stream) for the Stream/Watch tab
+  video_player: ^2.9.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/sounds/
