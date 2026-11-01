@@ -153,6 +153,9 @@ v10 details:
 - Build: flutter build web --release --no-web-resources-cdn --no-wasm-dry-run; publish only canvaskit/canvaskit.{js,wasm} (bootstrap forces canvasKitVariant "full"); the artifact host refuses .bin and .frag files, which the web app doesn't need.
 - Version 0.15.0+15. flutter analyze clean, flutter test 9/9.
 
+- 2026-10-31: v15 source pushed to GitHub: https://github.com/bazinmelesse/Jd-app (branch main). Future work goes there instead of zips.
+- 2026-11-01: built web app committed to docs/ (root index.html redirects to docs/, .nojekyll). GitHub Pages URL: https://bazinmelesse.github.io/Jd-app/ (best Pages setting: main branch, /docs). github.io isn't reachable from the cloud. To update: flutter build web --release --no-web-resources-cdn --no-wasm-dry-run, copy build/web to docs/ (drop .symbols and unused canvaskit variants), commit, push.
+
 ## 2026-11-01: v16, YouTube in the browser version (Baz: "Can you put the YouTube capabilities please")
 - Live: https://bazinmelesse.github.io/Jd-app/ (GitHub Pages, built app in docs/). The claude.ai artifact copy is NOT updated: artifacts block YouTube iframes.
 - Search: official YouTube Data API v3 with Baz's own free key (lib/services/youtube_web_search.dart). Key is pasted in the app (YoutubeKeyGate on Stream/Karaoke, stored in shared_preferences = this browser), or baked in with --dart-define=YT_KEY=... ~100 searches/day on the free quota. related() returns [] on web (API dropped it), so autoplay uses recent artists/searches.
