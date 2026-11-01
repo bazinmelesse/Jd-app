@@ -5,6 +5,10 @@ import '../models/track.dart';
 import '../services/audio_service.dart';
 import '../services/library_service.dart';
 import 'track_search_panel.dart';
+import 'youtube_key_gate.dart';
+import '../screens/device_music_screen.dart';
+import '../services/engine/engine_bridge.dart';
+import '../services/engine/local_song.dart';
 
 /// Bottom sheet: search YouTube (or pick from a playlist), tap a song to
 /// load it onto the target deck.
@@ -17,7 +21,9 @@ class TrackSearchSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     void load(Track track) {
       Navigator.of(context).pop();
-      context.read<LibraryController>().addRecentTrack(track);
+      if (!track.isLocal) {
+        context.read<LibraryController>().addRecentTrack(track);
+      }
       context.read<MixerController>().loadTrackOnDeck(targetDeck, track);
     }
 
@@ -30,10 +36,33 @@ class TrackSearchSheet extends StatelessWidget {
       ),
       child: SizedBox(
         height: MediaQuery.of(context).size.height * 0.75,
-        child: TrackSearchPanel(
-          hintText: 'Search YouTube...',
-          onTrackTap: (track, _) => load(track),
-          emptyState: _PlaylistPicker(onTrackTap: load),
+        child: Column(
+          children: [
+            if (isWebEngine) ...[
+              OpenSongsButton(
+                multiple: false,
+                label: 'Open a song from this device',
+                onPicked: (picked) {
+                  if (picked.isNotEmpty) {
+                    Navigator.of(context).pop();
+                    context
+                        .read<MixerController>()
+                        .loadTrackOnDeck(targetDeck, picked.first);
+                  }
+                },
+              ),
+              const SizedBox(height: 8),
+            ],
+            Expanded(
+              child: YoutubeKeyGate(
+                child: TrackSearchPanel(
+                  hintText: 'Search YouTube...',
+                  onTrackTap: (track, _) => load(track),
+                  emptyState: _PlaylistPicker(onTrackTap: load),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

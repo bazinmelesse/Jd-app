@@ -87,6 +87,7 @@
   }
 
   window.ytBridge = {
+    loadApi,
     create,
     dispose(id) {
       const p = players.get(id);

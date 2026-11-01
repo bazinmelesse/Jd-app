@@ -163,3 +163,11 @@ v10 details:
 - DJ decks on web still only take songs from the device (YouTube's player gives no raw audio). Doing that would need a proxy server (option offered to Baz).
 - Tested with a mocked YouTube API + mocked iframe player in headless Chromium (search results, play, position, full player, minimize keeps playing). youtube.com isn't reachable from the cloud, so not tested against the real thing.
 - Version 0.16.0+16.
+
+## 2026-11-01: v17, YouTube songs on the DJ decks in the browser (Baz: "The dj mode doesn't have the youtube capabilities")
+- Offered Baz a card: (0) YouTube decks with basic mixing [recommended, built], (1) full DJ via own proxy server, (2) leave as is.
+- web/dj_engine.js: method loadYoutube {deck, videoId, durationMs} makes a hidden 200x200 YouTube player per deck (opacity 0.01). play/seek/tempo (setPlaybackRate, YouTube rounds to its supported speeds)/gain (setVolume, capped at 100)/loop (20 ms poll + seekTo) work; scratch/EQ/filter/FX/headphones are ignored. state merges the YouTube positions. Loading a local file on that deck disposes the YouTube player.
+- Dart: Deck.loadYoutube + isYoutubeOnly; loadTrackOnDeck uses it on web for non-local tracks. Touching EQ/filter/FX on a YouTube deck shows a one-time note. No waveform/BPM for YouTube songs (so SYNC and beat loops are off; manual IN/OUT loops work).
+- DJ LOAD sheet on web = "Open a song from this device" button + YouTube search (key gate) + playlists. Automix offers playlists/recent again on web.
+- Risk: iPhone Safari may refuse to start a hidden YouTube player from our button (autoplay rules). Not testable from the cloud (youtube.com blocked); tested with a mocked YouTube in Chromium.
+- Version 0.17.0+17.

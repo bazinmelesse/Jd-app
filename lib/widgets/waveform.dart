@@ -121,7 +121,9 @@ class _CenterPainter extends CustomPainter {
     if (deck.currentTrack == null || peaks.isEmpty) {
       final tp = TextPainter(
         text: TextSpan(
-            text: 'Deck ${DjColors.letter(deck.id)}: load a song',
+            text: deck.currentTrack == null
+                ? 'Deck ${DjColors.letter(deck.id)}: load a song'
+                : 'Deck ${DjColors.letter(deck.id)}: no waveform for YouTube songs',
             style: const TextStyle(color: Colors.white38, fontSize: 11)),
         textDirection: TextDirection.ltr,
       )..layout();

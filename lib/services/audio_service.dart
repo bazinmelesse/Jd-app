@@ -146,6 +146,25 @@ class Deck {
     await _engine.invokeMethod('tempo', _args({'tempo': tempo}));
   }
 
+  /// Web version: a YouTube song plays in a hidden YouTube player, so
+  /// play, tempo, volume, cues and loops work, but not scratching or
+  /// EQ/FX.
+  Future<void> loadYoutube(Track track) async {
+    _loaded(
+        await _engine.invokeMapMethod(
+            'loadYoutube',
+            _args({
+              'videoId': track.videoId,
+              'durationMs': track.duration.inMilliseconds,
+            })),
+        track);
+    isYoutubeOnly = true;
+    await _engine.invokeMethod('tempo', _args({'tempo': tempo}));
+  }
+
+  /// True when this deck holds a YouTube song in the web version.
+  bool isYoutubeOnly = false;
+
   void _loaded(Map<String, Object?>? result, Track track) {
     duration = Duration(milliseconds: (result!['durationMs'] as num).toInt());
     peaks = result['peaks'] as Float32List;
@@ -155,6 +174,7 @@ class Deck {
     firstBeat =
         Duration(microseconds: ((result['firstBeatMs'] as num) * 1000).round());
     currentTrack = track;
+    isYoutubeOnly = false;
     isPlaying = false;
     cuePoint = Duration.zero;
     loopState = LoopState.off;
@@ -420,6 +440,8 @@ class MixerController extends ChangeNotifier {
       // Save the song on the device, then decode it into the engine.
       if (track.isLocal) {
         await deck.loadLocal(track);
+      } else if (isWebEngine) {
+        await deck.loadYoutube(track);
       } else {
         final file =
             await youtube.downloadAudio(track.videoId, await _cacheFolder());
@@ -489,12 +511,14 @@ class MixerController extends ChangeNotifier {
 
   Future<void> setEq(DeckId id,
       {double? low, double? mid, double? high}) async {
+    _youtubeHint(id);
     final f = deckFor(id).setEq(low: low, mid: mid, high: high);
     notifyListeners();
     await f;
   }
 
   Future<void> setFilter(DeckId id, double amount) async {
+    _youtubeHint(id);
     final f = deckFor(id).setFilter(amount);
     notifyListeners();
     await f;
@@ -502,9 +526,20 @@ class MixerController extends ChangeNotifier {
 
   Future<void> setFx(DeckId id, DeckFx fx,
       {double? amount, double? param}) async {
+    _youtubeHint(id);
     final f = deckFor(id).setFx(fx, amount: amount, param: param);
     notifyListeners();
     await f;
+  }
+
+  DeckId? _hinted;
+
+  /// Says once per deck that YouTube songs can't take EQ or effects.
+  void _youtubeHint(DeckId id) {
+    if (!deckFor(id).isYoutubeOnly || _hinted == id) return;
+    _hinted = id;
+    lastError = 'EQ, filter and FX only work on songs from your device in '
+        'the browser version (YouTube doesn\'t share its raw sound).';
   }
 
   /// SYNC: match this deck to the other one.

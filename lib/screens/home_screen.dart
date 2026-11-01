@@ -43,9 +43,7 @@ class _HomeScreenState extends State<HomeScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (_) => isWebEngine
-          ? DeviceSongSheet(targetDeck: deck)
-          : TrackSearchSheet(targetDeck: deck),
+      builder: (_) => TrackSearchSheet(targetDeck: deck),
     );
   }
 
@@ -90,10 +88,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final sources = <(String, List<Track>)>[
       if (isWebEngine && device.songs.isNotEmpty)
         ('Songs from this device', List.of(device.songs)),
-      if (!isWebEngine)
-        for (final p in library.playlists)
-          if (p.tracks.isNotEmpty) (p.name, p.tracks),
-      if (!isWebEngine && library.recentTracks.isNotEmpty)
+      for (final p in library.playlists)
+        if (p.tracks.isNotEmpty) (p.name, p.tracks),
+      if (library.recentTracks.isNotEmpty)
         ('Recently played', library.recentTracks),
     ];
     if (sources.isEmpty && !isWebEngine) {

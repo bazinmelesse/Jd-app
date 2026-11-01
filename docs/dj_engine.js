@@ -162,13 +162,123 @@
     };
   }
 
+
+  // ---- YouTube decks (web only) ----
+  // A browser can't get YouTube's raw sound, so a deck holding a YouTube
+  // song drives a hidden YouTube player instead of the mixer: play, seek,
+  // tempo (playback rate), volume and loops work; scratching, EQ and FX
+  // don't.
+  const yt = [null, null]; // per deck: {player, ready, want, loopIn, loopOut, gain, vol}
+
+  function ytHost() {
+    const host = document.createElement('div');
+    host.style.cssText = 'position:fixed;left:0;bottom:0;width:200px;height:200px;opacity:0.01;pointer-events:none;z-index:-1;overflow:hidden';
+    const inner = document.createElement('div');
+    host.appendChild(inner);
+    document.body.appendChild(host);
+    return { host, inner };
+  }
+
+  function ytDispose(deck) {
+    const d = yt[deck];
+    if (!d) return;
+    yt[deck] = null;
+    try { d.player.destroy(); } catch (_) {}
+    d.host.remove();
+  }
+
+  async function loadYoutube(deck, videoId, durationMs) {
+    ytDispose(deck);
+    await start();
+    send({ cmd: 'play', deck, playing: false });
+    send({ cmd: 'load', deck, pcm: new Int16Array(0), frames: 0, rate: 48000 });
+    await window.ytBridge.loadApi();
+    const { host, inner } = ytHost();
+    const d = { host, player: null, ready: false, want: false, loopIn: -1, loopOut: -1, gain: 1, rate: 1, ended: false };
+    yt[deck] = d;
+    await new Promise((resolve, reject) => {
+      d.player = new YT.Player(inner, {
+        width: 200, height: 200, videoId,
+        playerVars: { playsinline: 1, controls: 0, rel: 0, disablekb: 1, autoplay: 0 },
+        events: {
+          onReady: () => { d.ready = true; applyGain(d); resolve(); },
+          onStateChange: (e) => {
+            if (e.data === 0) { d.want = false; d.ended = true; }
+          },
+          onError: (e) => {
+            const why = { 101: 'The owner doesn\'t allow this video outside YouTube', 150: 'The owner doesn\'t allow this video outside YouTube',
+              100: 'This video was removed or is private', 5: 'This video can\'t play in a browser' }[e.data] || ('YouTube error ' + e.data);
+            if (!d.ready) reject(new Error(why)); else console.warn(why);
+          },
+        },
+      });
+      setTimeout(() => reject(new Error('YouTube took too long to answer')), 20000);
+    });
+    const real = Math.round(d.player.getDuration() * 1000);
+    return { durationMs: real > 0 ? real : durationMs, peaks: [], tones: [], peaksPerSecond: PEAKS_PER_SECOND, bpm: 0, firstBeatMs: 0, youtube: true };
+  }
+
+  function applyGain(d) {
+    if (!d.ready) return;
+    const v = Math.max(0, Math.min(100, Math.round(d.gain * 100)));
+    d.player.setVolume(v);
+    if (v > 0) d.player.unMute();
+  }
+
+  function ytPos(d) {
+    try { return Math.round(d.player.getCurrentTime() * 1000); } catch (_) { return 0; }
+  }
+
+  // Loops, and getting playback going if the browser held it back.
+  setInterval(() => {
+    for (const d of yt) {
+      if (!d || !d.ready) continue;
+      if (d.want && d.loopOut > d.loopIn && d.loopIn >= 0 && ytPos(d) >= d.loopOut) {
+        d.player.seekTo(d.loopIn / 1000, true);
+      }
+    }
+  }, 20);
+
+  /** Handles a deck command for a YouTube deck; false = not a YouTube deck. */
+  function ytCommand(method, a) {
+    const d = a.deck !== undefined ? yt[a.deck] : null;
+    if (!d) return false;
+    if (!d.ready) return true;
+    const p = d.player;
+    switch (method) {
+      case 'play':
+        d.want = !!a.playing; d.ended = false;
+        if (d.want) { p.playVideo(); } else { p.pauseVideo(); }
+        break;
+      case 'seek': p.seekTo(a.ms / 1000, true); break;
+      case 'tempo': d.rate = a.tempo; p.setPlaybackRate(a.tempo); break;
+      case 'gain': d.gain = a.gain; applyGain(d); break;
+      case 'loop': d.loopIn = a.inMs; d.loopOut = a.outMs; break;
+      default: break; // scratching, EQ, filter, FX, headphones: not possible
+    }
+    return true;
+  }
+
+  function ytState() {
+    const s = lastState.slice();
+    for (let i = 0; i < 2; i++) {
+      const d = yt[i];
+      if (!d) continue;
+      s[i] = d.ready ? ytPos(d) : 0;
+      s[2 + i] = d.want && !d.ended;
+    }
+    return s;
+  }
+
   async function call(method, argsJson) {
     const a = argsJson ? JSON.parse(argsJson) : {};
     switch (method) {
-      case 'state': return JSON.stringify(lastState);
+      case 'state': return JSON.stringify(ytState());
+      case 'loadYoutube': return JSON.stringify(await loadYoutube(a.deck, a.videoId, a.durationMs));
       case 'loadLocal': {
         const f = files.get(a.id);
         if (!f) throw new Error('That song is no longer open. Pick it again from your device.');
+        ytDispose(a.deck);
         return JSON.stringify(await loadDeck(a.deck, await f.arrayBuffer()));
       }
       case 'sampleLoadUrl': {
@@ -181,6 +291,7 @@
         return 'null';
       }
       default:
+        if (ytCommand(method, a)) return 'null';
         await start();
         send(Object.assign({ cmd: method }, a));
         return 'null';
