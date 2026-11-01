@@ -1,7 +1,7 @@
 name: dj_musi_app
 description: Personal music streaming + DJ mixing app (YouTube audio source, dual turntable mixer).
 publish_to: 'none'
-version: 0.15.0+15
+version: 0.16.0+16
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -30,6 +30,10 @@ dependencies:
 
   # Plays the actual YouTube video (muxed audio+video stream) for the Stream/Watch tab
   video_player: ^2.9.1
+
+  # Web version: YouTube's embedded player behind video_player
+  video_player_platform_interface: ^6.9.0
+  web: ^1.1.2
 
 dev_dependencies:
   flutter_test:

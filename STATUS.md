@@ -152,3 +152,11 @@ v10 details:
 - Tested in headless Chromium (phone 390x844, landscape 844x390): music player plays a picked MP3; deck A/B load, 120 BPM test track detected as 120.0, play, scratch moves the playhead back, sampler pads load. NOT tested on a real iPhone/Safari yet, and not confirmed inside the claude.ai artifact viewer (its security rules could block the WebAssembly renderer).
 - Build: flutter build web --release --no-web-resources-cdn --no-wasm-dry-run; publish only canvaskit/canvaskit.{js,wasm} (bootstrap forces canvasKitVariant "full"); the artifact host refuses .bin and .frag files, which the web app doesn't need.
 - Version 0.15.0+15. flutter analyze clean, flutter test 9/9.
+
+## 2026-11-01: v16, YouTube in the browser version (Baz: "Can you put the YouTube capabilities please")
+- Live: https://bazinmelesse.github.io/Jd-app/ (GitHub Pages, built app in docs/). The claude.ai artifact copy is NOT updated: artifacts block YouTube iframes.
+- Search: official YouTube Data API v3 with Baz's own free key (lib/services/youtube_web_search.dart). Key is pasted in the app (YoutubeKeyGate on Stream/Karaoke, stored in shared_preferences = this browser), or baked in with --dart-define=YT_KEY=... ~100 searches/day on the free quota. related() returns [] on web (API dropped it), so autoplay uses recent artists/searches.
+- Playback: YouTube IFrame player. lib/services/engine/yt_platform_web.dart wraps VideoPlayerPlatform so "ytembed:<id>?d=<ms>" sources go to web/yt_player.js; the player box lives on document.body and follows the HtmlElementView placeholder each frame, so it keeps playing when the full player is minimized. Unembeddable videos are filtered out of results.
+- DJ decks on web still only take songs from the device (YouTube's player gives no raw audio). Doing that would need a proxy server (option offered to Baz).
+- Tested with a mocked YouTube API + mocked iframe player in headless Chromium (search results, play, position, full player, minimize keeps playing). youtube.com isn't reachable from the cloud, so not tested against the real thing.
+- Version 0.16.0+16.

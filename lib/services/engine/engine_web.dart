@@ -48,7 +48,8 @@ class Engine {
     return v;
   }
 
-  Future<T?> invokeMethod<T>(String method, [Map<String, Object?>? args]) async =>
+  Future<T?> invokeMethod<T>(String method,
+          [Map<String, Object?>? args]) async =>
       await _invoke(method, args) as T?;
   Future<Map<String, Object?>?> invokeMapMethod(String method,
           [Map<String, Object?>? args]) async =>

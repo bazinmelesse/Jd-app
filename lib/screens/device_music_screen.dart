@@ -69,7 +69,7 @@ class DeviceMusicScreen extends StatelessWidget {
     final player = context.read<PlayerController>();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My music'),
+        title: const Text('Songs on this device'),
         actions: [
           IconButton(
             tooltip: 'Queue',
@@ -103,7 +103,8 @@ class DeviceMusicScreen extends StatelessWidget {
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: const CircleAvatar(child: Icon(Icons.music_note)),
-              title: Text(t.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+              title:
+                  Text(t.title, maxLines: 1, overflow: TextOverflow.ellipsis),
               subtitle: Text(t.author),
               onTap: () => player.playQueue(device.songs, i, lyrics: false),
               trailing: PopupMenuButton<String>(
@@ -154,8 +155,8 @@ class _WebNote extends StatelessWidget {
           SizedBox(width: 10),
           Expanded(
             child: Text(
-              'Browser test version. YouTube search and karaoke are in the '
-              'Android app; here you play songs saved on your device.',
+              'Songs from your device also work on the DJ decks. YouTube '
+              'songs play in the Stream tab only in the browser version.',
               style: TextStyle(fontSize: 13),
             ),
           ),
@@ -209,10 +210,9 @@ class DeviceSongSheet extends StatelessWidget {
           shrinkWrap: true,
           padding: const EdgeInsets.all(16),
           children: [
-            Text(
-                'Load deck ${targetDeck == DeckId.left ? 'A' : 'B'}',
-                style: const TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 16)),
+            Text('Load deck ${targetDeck == DeckId.left ? 'A' : 'B'}',
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             const SizedBox(height: 12),
             OpenSongsButton(
               multiple: false,

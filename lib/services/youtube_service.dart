@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 import '../models/track.dart';
+import 'engine/engine_bridge.dart';
+import 'youtube_web_search.dart';
 
 /// Wraps youtube_explode_dart to (1) search YouTube for tracks and
 /// (2) resolve a video ID down to a direct, playable audio-only stream URL.
@@ -14,6 +16,7 @@ class YoutubeService {
 
   /// Search YouTube and return a list of candidate tracks.
   Future<List<Track>> search(String query) async {
+    if (isWebEngine) return webYoutubeSearch(query);
     final searchResults = await _yt.search.search(query);
 
     return searchResults.whereType<Video>().map((video) {
@@ -29,6 +32,9 @@ class YoutubeService {
 
   /// Songs YouTube suggests after this one ("up next" on YouTube).
   Future<List<Track>> related(String videoId) async {
+    // YouTube's API no longer offers "related videos"; the web version's
+    // autoplay uses your recent artists and searches instead.
+    if (isWebEngine) return [];
     final video = await _yt.videos.get(videoId);
     final list = await _yt.videos.getRelatedVideos(video);
     if (list == null) return [];

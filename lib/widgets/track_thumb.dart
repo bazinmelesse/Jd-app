@@ -22,6 +22,9 @@ class TrackThumb extends StatelessWidget {
         width: width,
         height: height,
         fit: BoxFit.cover,
+        // YouTube's image server doesn't allow the browser to read the
+        // pixels, so the web version shows thumbnails as plain <img> tags.
+        webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
         errorBuilder: (_, __, ___) => fallback);
   }
 }

@@ -140,7 +140,8 @@ class Deck {
   /// Web version: decodes a song the user opened from their device.
   Future<void> loadLocal(Track track) async {
     _loaded(
-        await _engine.invokeMapMethod('loadLocal', _args({'id': track.localId})),
+        await _engine.invokeMapMethod(
+            'loadLocal', _args({'id': track.localId})),
         track);
     await _engine.invokeMethod('tempo', _args({'tempo': tempo}));
   }

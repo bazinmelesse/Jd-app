@@ -139,7 +139,10 @@ class PlayerController extends ChangeNotifier {
     try {
       final url = track.isLocal
           ? localSongUrl(track.localId)
-          : await youtube.getMuxedStreamUrl(track.videoId);
+          : isWebEngine
+              // Plays in YouTube's own player (web/yt_player.js).
+              ? 'ytembed:${track.videoId}?d=${track.duration.inMilliseconds}'
+              : await youtube.getMuxedStreamUrl(track.videoId);
       final c = VideoPlayerController.networkUrl(Uri.parse(url));
       await c.initialize();
       if (token != _loadToken) {

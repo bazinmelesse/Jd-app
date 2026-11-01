@@ -12,12 +12,19 @@ import 'screens/library_screen.dart';
 import 'screens/stream_screen.dart';
 import 'screens/device_music_screen.dart';
 import 'services/engine/engine_bridge.dart';
+import 'services/engine/yt_platform.dart';
+import 'services/youtube_web_search.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final library = LibraryController();
   await library.load();
-  runApp(DjMusiApp(library: library));
+  final youtubeKey = YoutubeKey();
+  if (isWebEngine) {
+    await youtubeKey.load();
+    registerYoutubePlayer();
+  }
+  runApp(DjMusiApp(library: library, youtubeKey: youtubeKey));
 }
 
 /// The bottom-nav tabs, in order.
@@ -31,8 +38,9 @@ class AppTabController extends ValueNotifier<int> {
 
 class DjMusiApp extends StatelessWidget {
   final LibraryController library;
+  final YoutubeKey youtubeKey;
 
-  const DjMusiApp({super.key, required this.library});
+  const DjMusiApp({super.key, required this.library, required this.youtubeKey});
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +55,7 @@ class DjMusiApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(create: (_) => AppTabController()),
         ChangeNotifierProvider(create: (_) => DeviceSongs()),
+        ChangeNotifierProvider.value(value: youtubeKey),
       ],
       child: MaterialApp(
         title: 'DJ Musi',
@@ -100,9 +109,9 @@ class _MainNavigationState extends State<MainNavigation> {
   }
 
   static const _screens = [
-    isWebEngine ? DeviceMusicScreen() : StreamScreen(),
+    StreamScreen(),
     HomeScreen(),
-    isWebEngine ? WebKaraokeNote() : KaraokeScreen(),
+    KaraokeScreen(),
     LibraryScreen(),
   ];
 

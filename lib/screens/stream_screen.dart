@@ -6,6 +6,9 @@ import '../widgets/add_to_playlist.dart';
 import '../widgets/mini_player.dart';
 import '../widgets/track_search_panel.dart';
 import 'video_player_screen.dart';
+import 'device_music_screen.dart';
+import '../services/engine/engine_bridge.dart';
+import '../widgets/youtube_key_gate.dart';
 
 /// Plays [track] full screen, with [queue] (the list it was picked from:
 /// a playlist, karaoke results...) queued around it for next/previous.
@@ -39,6 +42,13 @@ class StreamScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Stream'),
         actions: [
+          if (isWebEngine)
+            IconButton(
+              tooltip: 'Songs on this device',
+              icon: const Icon(Icons.folder_open),
+              onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const DeviceMusicScreen())),
+            ),
           IconButton(
             tooltip: 'Queue',
             icon: const Icon(Icons.queue_music),
@@ -48,46 +58,48 @@ class StreamScreen extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-        child: TrackSearchPanel(
-          hintText: 'Search videos or songs...',
-          onTrackTap: (track, _) => player.playNow(track),
-          trailingBuilder: (track) => Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                tooltip: 'Add to queue',
-                icon: const Icon(Icons.add_circle_outline),
-                onPressed: () {
-                  final playing = player.current != null;
-                  player.addToQueue(track);
-                  say(playing ? 'Added to the queue' : 'Playing now');
-                },
-              ),
-              PopupMenuButton<String>(
-                tooltip: 'More',
-                onSelected: (choice) {
-                  switch (choice) {
-                    case 'now':
-                      player.playNow(track);
-                    case 'next':
-                      player.playNext(track);
-                      say('Plays next');
-                    case 'queue':
-                      player.addToQueue(track);
-                      say('Added to the queue');
-                    case 'playlist':
-                      showAddToPlaylistSheet(context, track);
-                  }
-                },
-                itemBuilder: (_) => const [
-                  PopupMenuItem(value: 'now', child: Text('Play now')),
-                  PopupMenuItem(value: 'next', child: Text('Play next')),
-                  PopupMenuItem(value: 'queue', child: Text('Add to queue')),
-                  PopupMenuItem(
-                      value: 'playlist', child: Text('Add to playlist')),
-                ],
-              ),
-            ],
+        child: YoutubeKeyGate(
+          child: TrackSearchPanel(
+            hintText: 'Search videos or songs...',
+            onTrackTap: (track, _) => player.playNow(track),
+            trailingBuilder: (track) => Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  tooltip: 'Add to queue',
+                  icon: const Icon(Icons.add_circle_outline),
+                  onPressed: () {
+                    final playing = player.current != null;
+                    player.addToQueue(track);
+                    say(playing ? 'Added to the queue' : 'Playing now');
+                  },
+                ),
+                PopupMenuButton<String>(
+                  tooltip: 'More',
+                  onSelected: (choice) {
+                    switch (choice) {
+                      case 'now':
+                        player.playNow(track);
+                      case 'next':
+                        player.playNext(track);
+                        say('Plays next');
+                      case 'queue':
+                        player.addToQueue(track);
+                        say('Added to the queue');
+                      case 'playlist':
+                        showAddToPlaylistSheet(context, track);
+                    }
+                  },
+                  itemBuilder: (_) => const [
+                    PopupMenuItem(value: 'now', child: Text('Play now')),
+                    PopupMenuItem(value: 'next', child: Text('Play next')),
+                    PopupMenuItem(value: 'queue', child: Text('Add to queue')),
+                    PopupMenuItem(
+                        value: 'playlist', child: Text('Add to playlist')),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
