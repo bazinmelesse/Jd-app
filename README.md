@@ -1,3 +1,15 @@
+# DJ Musi
+
+Personal music player + two-turntable DJ mixer (Flutter).
+
+**Try it in a browser:** https://bazinmelesse.github.io/Jd-app/ (plays songs saved on your device; YouTube search is Android-only for now).
+
+- Android app: `flutter build apk`
+- Web version: `flutter build web --release --no-web-resources-cdn`, then copy `build/web` to `docs/` (GitHub Pages serves `docs/`). The web DJ engine is in `web/dj_engine.js` and `web/dj_engine_core.js`.
+- Progress notes: `STATUS.md`
+
+---
+
 # DJ Musi — Personal Music + DJ Mixer App (Phase 1)
 
 A personal, non-commercial Flutter app: search & stream audio pulled from
